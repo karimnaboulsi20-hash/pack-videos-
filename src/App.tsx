@@ -334,40 +334,71 @@ const _Fragment = React.Fragment;
 
 const VslPlayer = React.memo(function VslPlayer() {
   const [started, setStarted] = useState<boolean>(false);
-  const [key, setKey] = useState<number>(0);
+  const [srcUrl, setSrcUrl] = useState<string>('');
+  const iframeRef = useRef<HTMLIFrameElement>(null);
 
-  const startVideo = () => {
+  const startVideo = (e?: React.MouseEvent | React.TouchEvent) => {
+    if (e) {
+      try {
+        e.stopPropagation();
+      } catch (err) {}
+    }
+
+    if (started) return;
+
+    // Direct iOS Safari friendly embedded URL with explicit playsinline, autoplay, unmuted and restart from 0
+    const targetUrl = 'https://www.youtube.com/embed/Pm7LPpta5lk?autoplay=1&mute=0&controls=1&playsinline=1&webkit-playsinline=1&rel=0&modestbranding=1&enablejsapi=1&start=0';
+
+    setSrcUrl(targetUrl);
     setStarted(true);
-    setKey(prev => prev + 1);
+
+    // Warm iOS audio engine on this direct user touch gesture
+    try {
+      const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+      if (AudioCtx) {
+        const tempCtx = new AudioCtx();
+        if (tempCtx.state === 'suspended') {
+          tempCtx.resume();
+        }
+      }
+    } catch (err) {}
   };
 
   return (
-    <div className="aspect-[9/16] w-full rounded-2xl overflow-hidden border-2 border-[#CCFF00]/60 shadow-[0_0_50px_rgba(204,255,0,0.35)] bg-black relative">
+    <div
+      className="aspect-[9/16] w-full rounded-2xl overflow-hidden border-2 border-[#CCFF00]/60 shadow-[0_0_50px_rgba(204,255,0,0.35)] bg-black relative"
+      style={{ WebkitTransform: 'translate3d(0,0,0)', transform: 'translate3d(0,0,0)' }}
+    >
       {started && (
         <iframe
-          key={key}
-          src="https://www.youtube.com/embed/Pm7LPpta5lk?autoplay=1&mute=0&controls=1&playsinline=1&rel=0&modestbranding=1"
+          ref={iframeRef}
+          src={srcUrl}
           title="Viral Pack Pro VSL"
           className="absolute inset-0 w-full h-full border-0 pointer-events-auto rounded-2xl"
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
           allowFullScreen
         />
       )}
+
       {!started && (
         <div
           onClick={startVideo}
+          onTouchEnd={startVideo}
+          role="button"
+          tabIndex={0}
+          aria-label="Assistir ao vídeo agora"
           className="absolute inset-0 z-30 flex flex-col items-center justify-center bg-gradient-to-b from-black/85 via-black/75 to-black/95 cursor-pointer group transition-all p-4 text-center select-none"
         >
           <div className="absolute inset-0 opacity-40 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-[#CCFF00]/30 via-transparent to-transparent pointer-events-none" />
-          <div className="relative z-10 bg-[#CCFF00] hover:bg-[#bbf000] text-black font-black w-20 h-20 rounded-full shadow-[0_0_40px_rgba(204,255,0,0.8)] flex items-center justify-center animate-bounce transition-transform group-hover:scale-110 mb-4">
+          <div className="relative z-10 bg-[#CCFF00] hover:bg-[#bbf000] text-black font-black w-20 h-20 rounded-full shadow-[0_0_40px_rgba(204,255,0,0.8)] flex items-center justify-center animate-bounce transition-transform group-hover:scale-110 mb-4 pointer-events-none">
             <span className="text-3xl ml-1">▶</span>
           </div>
-          <div className="relative z-10 bg-[#121318]/95 border border-[#CCFF00]/60 px-5 py-3 rounded-2xl shadow-xl">
+          <div className="relative z-10 bg-[#121318]/95 border border-[#CCFF00]/60 px-5 py-3 rounded-2xl shadow-xl pointer-events-none">
             <div className="text-[#CCFF00] font-black text-xs uppercase tracking-wider mb-1 flex items-center justify-center gap-1.5">
               <span>🔊</span> Ativar Som
             </div>
             <p className="text-white text-xs sm:text-sm font-bold leading-snug">
-              Clique para assistir ao vídeo com áudio
+              Toque para assistir ao vídeo imediatamente do início
             </p>
           </div>
         </div>
