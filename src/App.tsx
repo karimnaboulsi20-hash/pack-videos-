@@ -258,11 +258,41 @@ function _e() {
   }
 }
 
+
+const META_PIXEL_ID = '1428966156115611';
+const META_CAPI_TOKEN = 'EAAXhiY72ZBSoBS26By4bknM8AaKZCJGTz2HSJzdkwLifCnki6FIuthC0UR8WpthHWYR95pr4ZAN2E8RY9RhhbZCGG79gr8B93sZBy38SqI6MfxUcS8My90eam59JfAtu53xHOJyP1O32TkQCI6BQg2kjAplZAL0MWxY1k1oHDhjdJpmWBvYqxv01KgjLjG2QZDZD';
+
+function sendCapiEvent(eventName: string, data?: any) {
+  if (typeof window === 'undefined') return;
+  try {
+    const url = `https://graph.facebook.com/v19.0/${META_PIXEL_ID}/events?access_token=${META_CAPI_TOKEN}`;
+    const payload = {
+      data: [
+        {
+          event_name: eventName,
+          event_time: Math.floor(Date.now() / 1000),
+          action_source: 'website',
+          event_source_url: window.location.href,
+          custom_data: data || {}
+        }
+      ]
+    };
+    fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    }).catch(() => {});
+  } catch (e) {}
+}
+
 function we(eventName: string, data?: any) {
-  if (typeof window !== 'undefined' && (window as any).fbq) {
-    try {
-      (window as any).fbq('track', eventName, data);
-    } catch {}
+  if (typeof window !== 'undefined') {
+    if ((window as any).fbq) {
+      try {
+        (window as any).fbq('track', eventName, data);
+      } catch {}
+    }
+    sendCapiEvent(eventName, data);
   }
 }
 
