@@ -334,26 +334,25 @@ const _Fragment = React.Fragment;
 
 const VslPlayer = React.memo(function VslPlayer() {
   const [started, setStarted] = useState<boolean>(false);
-  const iframeRef = useRef<HTMLIFrameElement>(null);
+  const [key, setKey] = useState<number>(0);
 
   const startVideo = () => {
     setStarted(true);
-    if (iframeRef.current && iframeRef.current.contentWindow) {
-      iframeRef.current.contentWindow.postMessage(JSON.stringify({ event: 'command', func: 'unMute', args: [] }), '*');
-      iframeRef.current.contentWindow.postMessage(JSON.stringify({ event: 'command', func: 'playVideo', args: [] }), '*');
-    }
+    setKey(prev => prev + 1);
   };
 
   return (
     <div className="aspect-[9/16] w-full rounded-2xl overflow-hidden border-2 border-[#CCFF00]/60 shadow-[0_0_50px_rgba(204,255,0,0.35)] bg-black relative">
-      <iframe
-        ref={iframeRef}
-        src="https://www.youtube-nocookie.com/embed/Pm7LPpta5lk?autoplay=1&mute=1&controls=1&playsinline=1&rel=0&modestbranding=1&enablejsapi=1"
-        title="Viral Pack Pro VSL"
-        className="absolute inset-0 w-full h-full border-0 pointer-events-auto rounded-2xl"
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-        allowFullScreen
-      />
+      {started && (
+        <iframe
+          key={key}
+          src="https://www.youtube.com/embed/Pm7LPpta5lk?autoplay=1&mute=0&controls=1&playsinline=1&rel=0&modestbranding=1"
+          title="Viral Pack Pro VSL"
+          className="absolute inset-0 w-full h-full border-0 pointer-events-auto rounded-2xl"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          allowFullScreen
+        />
+      )}
       {!started && (
         <div
           onClick={startVideo}
